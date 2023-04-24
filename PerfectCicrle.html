@@ -1,0 +1,76 @@
+<!DocType html>
+<html>
+<head> </head>
+<body>
+	<canvas id="canvas" width="500" height="500"></canvas>
+	<div id="score"></div>
+</body>
+<script>
+	const canvas = document.getElementById('canvas');
+const context = canvas.getContext('2d');
+const scoreDiv = document.getElementById('score');
+
+let isDrawing = false;
+let lastPoint = null;
+let radius = 100;
+let circleCenter = { x: 250, y: 250 };
+let score = 0;
+
+function drawCircle() {
+  context.beginPath();
+  context.arc(circleCenter.x, circleCenter.y, radius, 0, Math.PI * 2);
+  context.stroke();
+}
+
+function calculateScore(point) {
+  const distance = Math.sqrt((point.x - circleCenter.x) ** 2 + (point.y - circleCenter.y) ** 2);
+  const diff = Math.abs(distance - radius);
+  score = (1 - diff / radius) * 100;
+  scoreDiv.textContent = `Score: ${score.toFixed(2)}%`;
+  if (score < 50) {
+    context.fillStyle = `rgb(${255 - score * 5}, 0, 0)`;
+  }
+  else {
+    context.fillStyle = '#000';
+  }
+}
+
+canvas.addEventListener('mousedown', (event) => {
+  isDrawing = true;
+  lastPoint = { x: event.clientX - canvas.offsetLeft, y: event.clientY - canvas.offsetTop };
+});
+
+canvas.addEventListener('mousemove', (event) => {
+  if (!isDrawing) return;
+  const currentPoint = { x: event.clientX - canvas.offsetLeft, y: event.clientY - canvas.offsetTop };
+  const distance = Math.sqrt((currentPoint.x - circleCenter.x) ** 2 + (currentPoint.y - circleCenter.y) ** 2);
+  if (distance < radius - 5 || distance > radius + 5) {
+    scoreDiv.textContent = 'Error: Too close to the circle';
+    return;
+  }
+  const timeDiff = Date.now() - lastPoint.time;
+  if (timeDiff > 1000) {
+    scoreDiv.textContent = 'Error: Too slow';
+    return;
+  }
+  context.beginPath();
+  context.moveTo(lastPoint.x, lastPoint.y);
+  context.lineTo(currentPoint.x, currentPoint.y);
+  context.stroke();
+  calculateScore(currentPoint);});
+
+canvas.addEventListener('mouseup', () => {
+isDrawing = false;
+lastPoint = null;
+if (score < 50) {
+scoreDiv.textContent = 'Error: Circle not perfect';
+}
+else {
+scoreDiv.textContent = 'Congratulations! You drew a perfect circle!';
+}
+});
+
+drawCircle();
+
+</script>
+</html>	
